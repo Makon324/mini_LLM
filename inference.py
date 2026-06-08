@@ -207,7 +207,7 @@ def main():
     generated_text = generated_text.replace(" ' ", "'")
     generated_text = generated_text.replace(" :", ":")
     generated_text = generated_text.replace(" ;", ";")
-    generated_text = generated_text.replace("\" ", "\"")
+    generated_text = generated_text.replace(" \" ", " \"")
 
     print(generated_text)
 
