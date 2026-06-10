@@ -1,78 +1,145 @@
-Jasne, oto profesjonalny raport w formacie Markdown, przygotowany na podstawie dostarczonych plików z kodem oraz dyskusji z Discorda. Raport łączy formalną strukturę z wnioskami, które wyciągnęliście podczas testowania modelu.
+## 3. Wyniki
 
----
+### 3.1. Prezentacja działającego systemu
 
-## Raport z Projektu: Model Językowy TinyStories
+W wyniku realizacji projektu uzyskaliśmy działający mały model językowy zdolny do generowania krótkich historii w języku angielskim. Model działa autoregresyjnie: otrzymuje początkowy prompt, przewiduje następny token, dołącza go do aktualnej sekwencji i powtarza ten proces aż do wygenerowania zadanej liczby tokenów lub zakończenia sekwencji.
 
-### Introduction
+System można uruchomić z poziomu wiersza poleceń za pomocą skryptu inferencyjnego. Skrypt wczytuje tokenizator oraz wytrenowane wagi modelu, koduje prompt, generuje nowe tokeny, dekoduje je z powrotem do tekstu, a następnie wykonuje podstawowe przetwarzanie końcowe, między innymi usuwanie zbędnych spacji przed znakami interpunkcyjnymi.
 
-**Problem description**
-Współczesne modele językowe (LLM) osiągają imponujące wyniki w generowaniu tekstu, jednak ich trenowanie wymaga ogromnych zasobów obliczeniowych oraz potężnych zbiorów danych. Głównym problemem jest zbadanie, czy możliwe jest stworzenie spójnie działającego, miniaturowego modelu językowego na ograniczonych zasobach, który potrafiłby generować logiczne, choć uproszczone historie w języku angielskim.
+Przykładowe użycie:
 
-**Project goal**
-Celem projektu było zaimplementowanie, wytrenowanie i przetestowanie małego modelu autoregresyjnego opartego na architekturze Transformer. Model o wielkości około 4 milionów parametrów miał zostać nauczony na specyficznym, uproszczonym zbiorze danych, aby z powodzeniem generować krótkie opowiadania i reagować na podane przez użytkownika prompty.
+```bash
+python inference.py
+python inference.py --prompt "One day"
+python inference.py --prompt "One day, a big green dragon" --tokens 180 --temp 0.8 --top_k 10
+```
 
----
+Model był w stanie generować krótkie historie w stylu zbliżonym do zbioru TinyStories. Wygenerowane teksty zwykle zawierają prostego bohatera, miejsce akcji, wydarzenie oraz podstawowe zakończenie. Przykładowo, dla generacji bez promptu model utworzył następujący fragment:
 
-### Methods and Data
+> Once upon a time, there was a little girl named Lily. She loved to play with her dolls. One day, she asked her mom if she could play with her dolls, but her mom said no. Lily was sad. She went to her room and started to cry. (...)
 
-**Method description**
-Zastosowano architekturę Transformer z mechanizmem przyczynowej uwagi (Causal Self-Attention), która jest standardem dla modeli generujących tekst (np. seria GPT). Sieć działa w sposób autoregresyjny, co oznacza, że na podstawie podanego kontekstu przewiduje najbardziej prawdopodobny następny token (słowo lub jego fragment). Aby sieć mogła analizować pozycję słów, użyto zarówno zanurzeń tokenów (Token Embeddings), jak i zanurzeń pozycyjnych (Position Embeddings).
+Tekst zachowuje prosty, dziecięcy styl narracji. Pojawia się bohaterka, problem oraz próba jego rozwiązania. Jednocześnie można zauważyć pewne niespójności logiczne, na przykład przejście od zabawy lalkami do poszukiwania zgubionego szczeniaka.
 
-Zastosowany mechanizm atencji można opisać formalnym wzorem matematycznym, w którym zapytania ($Q$), klucze ($K$) oraz wartości ($V$) są wykorzystywane do obliczenia wag uwagi dla każdego tokenu:
+Dla promptu:
 
-$$\text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^T}{\sqrt{d_k}}\right)V$$
+```text
+One day
+```
 
-**State-of-the-art summary**
-Współczesne modele takie jak GPT-4 czy LLaMA polegają na miliardach parametrów. Jednak badania nad modelami typu "TinyStories" udowadniają, że zastosowanie odpowiednio przefiltrowanego, syntetycznego zbioru danych (złożonego z prostych słów dostosowanych do poziomu kilkulatków) pozwala drastycznie zmniejszyć architekturę sieci. Dzięki temu, nawet sieci o ułamku wielkości tradycyjnych LLM-ów potrafią przyswoić poprawną gramatykę i podstawy rozumowania przyczynowo-skutkowego.
+model wygenerował historię rozpoczynającą się następująco:
 
-**Technology description**
-Całość rozwiązania została zaimplementowana w języku Python przy użyciu biblioteki PyTorch. Skrypt odpowiedzialny za wnioskowanie pozwala na dynamiczne próbkowanie z wykorzystaniem parametrów takich jak `temperature` oraz `top_k`.
+> One day, a little girl named Lily went to the park. She saw a big tree with lots of trees and flowers. She wanted to climb it. But it was very high for her to reach. (...)
 
-Poniższa tabela przedstawia kluczowe hiperparametry wytrenowanego modelu:
+Ten przykład pokazuje, że model dobrze radzi sobie z promptami przypominającymi naturalny początek bajki. Kontynuacja zachowuje temat parku, drzewa i pomocy dziecku, chociaż w dalszej części pojawiają się powtórzenia, np. wielokrotne stwierdzenie, że drzewo było zbyt wysokie.
 
-| Hiperparametr | Wartość | Opis |
-| --- | --- | --- |
-| **Rozmiar słownika (VOCAB_SIZE)** | 4096 | Liczba unikalnych tokenów |
-| **Długość kontekstu (CONTEXT_LENGTH)** | 256 | Maksymalna liczba tokenów przetwarzanych naraz |
-| **Wymiar embeddingu (N_EMBD)** | 256 | Rozmiar wektora reprezentującego token |
-| **Liczba warstw (N_LAYER)** | 4 | Liczba bloków Transformera |
-| **Głowy atencji (N_HEAD)** | 8 | Liczba niezależnych mechanizmów atencji (32 wymiary na głowę) |
-| **Parametry trenowania** | 3 Epoki | Trenowane przez 2 epoki z dodatkową 1 epoką (Learning Rate: 5e-4) |
+### 3.2. Eksperyment z temperaturą generacji
 
-**Data description**
-Wykorzystano zbiór danych `roneneldan/TinyStories` pobrany z platformy Hugging Face. Zbiór ten zawiera wygenerowane opowiadania dla małych dzieci. Przetwarzanie danych obejmowało stworzenie dedykowanego tokenizatora BPE (Byte-Pair Encoding), który analizował zbiór partiami po 10 000 historii. Tokenizator wzbogacono o specjalne tokeny `<bos>` (początek zdania) oraz `<eos>` (koniec zdania).
+W pierwszym eksperymencie sprawdzono wpływ temperatury na generowany tekst. Użyto tego samego promptu:
 
----
+```text
+One day, a big green dragon
+```
 
-### Results
+oraz ustawiono `top_k = 10` i `tokens = 180`. Testowano trzy wartości temperatury: `0.3`, `0.8` oraz `1.2`.
 
-**Experimental results or working system presentation**
-Model po wytrenowaniu został pomyślnie uruchomiony w trybie wnioskowania (na CPU). Okazał się zdolny do samodzielnego generowania wielozdaniowych historii na podstawie krótkich promptów. Przykład wygenerowanej historii dla promptu wprowadzającego:
+Dla temperatury `0.3` model wygenerował tekst bardziej przewidywalny i stabilny:
 
-> **Prompt:** "One day, a big green dragon"
-> **Wygenerowany tekst:** "One day, a big green dragon named Tom went for a walk. Tom liked to see the big green mountain in the distance. He saw many animals like trees, birds, and birds. He felt happy and free. One day, Tom went to the forest and said, "I want to see the animals. I want to see them up close!" The bird said, "I want to go see them. They are too big and too heavy." Tom and the bird became friends and played together every day."
+> One day, a big green dragon was walking in the forest. He was very brave and he wanted to explore the world. (...)
 
-**Observations**
-Na podstawie analizy działania modelu wyciągnięto następujące wnioski:
+Wynik był dość spójny stylistycznie, ale szybko pojawiły się powtórzenia. Model wielokrotnie wracał do słów i motywów takich jak “forest”, “explore” oraz “excited”. Niska temperatura ogranicza losowość wyboru tokenów, przez co model częściej wybiera najbardziej prawdopodobne kontynuacje, ale może łatwiej wpadać w powtarzalne schematy.
 
-* **Spójność postaci i gramatyka:** Model (posiadający ok. 4 mln parametrów) radzi sobie zadziwiająco dobrze z zachowaniem ciągłości postaci (np. smok Tom, kot, dziewczynka Lily). Generuje poprawne gramatycznie, choć bardzo proste, zdania w języku angielskim.
-* **Repetytywność (Halucynacje):** Zauważono skłonność do zapętlania się i powtarzania fraz w przypadku niektórych promptów (np. trzykrotne powtórzenie *"The dog is gone."* lub *"They have no more flowers."*).
-* **Problemy z Out-of-Distribution (OOD):** Nietypowe wielkie litery stanowią wyzwanie. Użytkownik wprowadzający prompt *"Story about flowers"* sprawił, że tokenizator podzielił słowo na dwie części *"S tory"*, ponieważ wyraz "Story" pisany wielką literą pojawiał się zbyt rzadko w korpusie treningowym, aby stanowić niezależny token. Model nie potrafił poprawnie uwarunkować na tym swojej uwagi.
-* **Post-processing interpunkcji:** Aby poprawić jakość i czytelność tekstu wychodzącego, zastosowano "twarde" reguły w skrypcie inferencyjnym, programowo usuwając spacje przed znakami interpunkcyjnymi (np. przecinkami i kropkami), które wynikały ze specyfiki działania zastosowanego tokenizatora.
+Dla temperatury `0.8` model wygenerował krótszą, bardziej zwartą historię:
 
----
+> One day, a big green dragon was sitting on a tree. The dragon was very tall and tall. The dragon felt like a little bird. (...)
 
-### Conclusion
+Tekst był mniej powtarzalny niż przy temperaturze `0.3`, ale nadal zawierał pewne problemy, np. powtórzenie “very tall and tall” oraz uproszczoną logikę historii. Ta wartość temperatury dawała rozsądny kompromis między spójnością a różnorodnością.
 
-**Key takeaways and insights**
-Eksperyment zakończył się sukcesem i dowodzi, że budowa własnego modelu LLM od zera jest jak najbardziej wykonalna na domowym sprzęcie studenckim. Głównym wnioskiem płynącym z projektu jest fakt, że rozmiar modelu (liczba parametrów) ma mniejsze znaczenie niż jakość i struktura zbioru uczącego w kontekście generowania podstawowych, gramatycznie poprawnych zdań. Aby uzyskać najlepsze rezultaty, należy stosować odpowiedni *prompt engineering* (np. wprowadzenie typu *"Once upon a time"* lub *"One day"*), co wprowadza model w odpowiednią przestrzeń ukrytą (latent space), zgodną ze zbiorem TinyStories. Ewentualne ulepszenia na przyszłość powinny obejmować poprawienie procesów tokenizacji oraz powiększenie rozmiaru słownika (VOCAB_SIZE) w celu lepszej obsługi kapitalizacji.
+Dla temperatury `1.2` model wygenerował bardziej dynamiczny i kreatywny tekst:
 
-**References**
+> One day, a big green dragon flew down and started moving his wings. He was flying very fast and the dragon was flying. (...)
 
-* Zbiór danych: HuggingFace Datasets (`roneneldan/TinyStories`)
-* Implementacja modelu: Biblioteka `torch` (PyTorch) oraz `torch.nn`
-* Narzędzia tekstowe: `tokenizers` (Hugging Face)
-* Pliki projektowe:
-* Plik treningowy środowiska Jupyter: `proj3.ipynb`
-* Skrypt do wnioskowania i architektura modelu: `inference.py`
+W tym przypadku historia była bardziej zróżnicowana, ale pojawiło się więcej problemów logicznych. Model częściej powtarzał słowo “dragon” i tworzył mniej naturalne przejścia między zdarzeniami. Wyższa temperatura zwiększa różnorodność generacji, ale jednocześnie pogarsza kontrolę nad spójnością tekstu.
+
+### 3.3. Eksperyment z parametrem top-k
+
+W kolejnym eksperymencie sprawdzono wpływ parametru `top_k`, pozostawiając stałą temperaturę `0.8`. Użyto tego samego promptu:
+
+```text
+One day, a big green dragon
+```
+
+Dla `top_k = 1` model wybierał zawsze najbardziej prawdopodobny token. Wygenerowany tekst był prosty i dość spójny:
+
+> One day, a big green dragon was walking in the forest. He was very scared and didn't know what to do. (...)
+
+Taki sposób generacji daje stabilny wynik, ale ogranicza kreatywność. Historia była krótka, przewidywalna i zakończyła się dość szybko.
+
+Dla `top_k = 5` model uzyskał bardziej naturalny kompromis:
+
+> One day, a big green dragon was walking in the forest. The dragon saw many things and wanted to see who could help. (...)
+
+Tekst zachował temat smoka i lasu, a jednocześnie był trochę bardziej zróżnicowany niż dla `top_k = 1`. Nadal pojawiały się jednak powtórzenia, na przykład wielokrotne użycie motywu pomocy.
+
+Dla `top_k = 50` model miał większą swobodę wyboru tokenów:
+
+> One day, a big green dragon was walking out the door. He was feeling curious and wanted to find out what was inside. He ca ut ious ly stepped inside the door (...)
+
+Wynik był bardziej różnorodny, ale pojawiły się wyraźne artefakty tokenizacji, np. “ca ut ious ly”. Tekst stał się mniej przewidywalny i mniej stabilny. Pokazuje to, że zbyt duże `top_k` może zwiększać kreatywność, ale jednocześnie podnosi ryzyko wyboru mniej trafnych tokenów.
+
+### 3.4. Eksperyment z różnymi typami promptów
+
+Następnie sprawdzono, jak model reaguje na różne rodzaje promptów. Najlepsze wyniki uzyskano dla promptów przypominających naturalny początek historii, np.:
+
+```text
+Once upon a time, there was a little girl named Lily
+```
+
+Model wygenerował kontynuację:
+
+> Once upon a time, there was a little girl named Lily. She loved to play with her toys and her friends would always play together. One day, Lily's mom asked her to clean her room. (...)
+
+W tym przypadku model dobrze kontynuował podany początek. Historia zachowała bohaterkę Lily oraz prosty dziecięcy kontekst. Pojawił się typowy dla TinyStories motyw nauki dobrego zachowania, czyli sprzątania pokoju.
+
+Gorsze wyniki pojawiły się dla promptów przypominających instrukcję, np.:
+
+```text
+Write a story about flowers
+```
+
+Wygenerowany tekst rozpoczął się od:
+
+> W r ite a story about flowers and butterflies. She wanted to be a flower. (...)
+
+Model nie potraktował tego promptu jako polecenia, tylko jako zwykły początek tekstu do kontynuacji. Dodatkowo słowo “Write” zostało rozbite jako “W r ite”, co wskazuje na problem tokenizacji. Wynik pokazuje, że model nie jest modelem instrukcyjnym ani chatbotem. Nie został wytrenowany do wykonywania poleceń, tylko do kontynuowania tekstu.
+
+Podobny problem wystąpił dla promptu spoza domeny danych treningowych:
+
+```text
+The quantum computer calculated
+```
+
+Model wygenerował:
+
+> The qu ant um computer cal c ul ated in the living room. One day, Lily's little brother came over (...)
+
+W tym przykładzie słowa związane z technologią, takie jak “quantum”, “computer” i “calculated”, zostały rozbite na mniejsze fragmenty. Model szybko przeszedł z tematu komputera kwantowego do typowej dziecięcej historii o Lily i rodzinie. Oznacza to, że model najlepiej działa dla promptów podobnych do danych treningowych, a gorzej dla tematów technicznych lub rzadko występujących w zbiorze TinyStories.
+
+### 3.5. Obserwacje
+
+Przeprowadzone eksperymenty pokazują, że model nauczył się ogólnego stylu prostych historii dziecięcych. Potrafi generować krótkie zdania, używać prostego słownictwa, wprowadzać bohaterów oraz tworzyć podstawową strukturę narracyjną. Najlepsze wyniki uzyskiwano dla promptów, które brzmiały jak naturalny początek bajki, np. “One day” albo “Once upon a time”.
+
+Jednocześnie model ma kilka widocznych ograniczeń. Najczęściej pojawiają się powtórzenia tych samych słów, motywów i konstrukcji zdaniowych. Widać to szczególnie przy niskiej temperaturze oraz przy dłuższej generacji. Model potrafi utrzymywać lokalną spójność tekstu, ale nie zawsze zachowuje globalny plan historii.
+
+Eksperymenty z parametrami generacji pokazały, że temperatura i `top_k` mają duży wpływ na wynik. Niska temperatura daje bardziej przewidywalne, ale często bardziej powtarzalne teksty. Wyższa temperatura zwiększa różnorodność, ale pogarsza spójność. Małe `top_k` ogranicza kreatywność, natomiast duże `top_k` może prowadzić do bardziej zaskakujących, ale mniej stabilnych wyników.
+
+Istotnym ograniczeniem okazały się również artefakty tokenizacji. W przypadku mniej typowych słów lub promptów spoza domeny treningowej pojawiały się fragmenty takie jak “W r ite”, “qu ant um”, “cal c ul ated”, “tele vis ion”, “g mail” oraz “ca ut ious ly”. Oznacza to, że jakość działania modelu zależy nie tylko od architektury, ale również od jakości tokenizatora i podobieństwa promptu do danych treningowych.
+
+Dodatkowo zauważono, że gdy w promptach pojawiają się słowa rzadkie lub słabo reprezentowane w danych treningowych, model po rozbiciu ich na mniejsze fragmenty często próbuje dopasować te fragmenty do znanych schematów narracyjnych. Przykładowo prompt “gmail” został rozbity na “g mail”, po czym model zaczął generować historię związaną z listem, pocztą i słowem “mailer”. Podobnie słowa techniczne, takie jak “quantum” czy “calculated”, nie były traktowane jako pojęcia techniczne, tylko jako fragmenty tekstu, które model próbował wpasować w prostą historię dziecięcą.
+
+Można również zauważyć, że nietypowe lub rozbite słowa bywają przez model traktowane jak nazwy własne, imiona, obiekty albo elementy świata przedstawionego. Wynika to prawdopodobnie z faktu, że w danych treningowych często pojawiają się proste historie zaczynające się od bohatera, przedmiotu lub miejsca. Model nie rozumie więc znaczenia rzadkiego słowa w taki sposób jak człowiek, tylko dopasowuje jego fragmenty do wzorców językowych poznanych podczas treningu.
+
+Ta obserwacja pokazuje, że model najlepiej działa dla promptów podobnych do danych treningowych. Jeśli prompt zawiera słownictwo spoza tej domeny, szczególnie techniczne lub nietypowe, jakość generacji spada. Model może wtedy nie tylko rozbić słowa na fragmenty tokenów, ale też błędnie nadać im rolę w historii, np. potraktować je jak bohaterów, imiona lub obiekty występujące w bajce.
+
+Ogólnie wyniki można uznać za satysfakcjonujące jak na mały model językowy. System nie osiąga jakości dużych modeli konwersacyjnych, ale dobrze pokazuje podstawowe mechanizmy generowania tekstu: kontynuowanie promptu, wpływ parametrów próbkowania oraz ograniczenia wynikające z rozmiaru modelu, tokenizacji i danych treningowych.
+
+
