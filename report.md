@@ -177,5 +177,4 @@ Ważnym ograniczeniem okazała się tokenizacja. Słowa rzadkie lub spoza domeny
 
 Mimo widocznych ograniczeń projekt osiągnął swój główny cel. Udało się stworzyć kompletny pipeline generowania tekstu: od tokenizacji, przez wczytanie modelu, aż po autoregresyjną generację i dekodowanie wyniku. Model nie osiąga jakości dużych modeli konwersacyjnych, ale dobrze demonstruje podstawowe mechanizmy działania małych modeli językowych oraz pokazuje, jak parametry próbkowania, tokenizacja i dane treningowe wpływają na generowany tekst.
 
-W przyszłości projekt można rozwinąć poprzez ulepszenie tokenizatora, zwiększenie modelu, wydłużenie kontekstu oraz przeprowadzenie bardziej systematycznej ewaluacji jakości generowanych historii. Ciekawym kierunkiem byłoby również dostrojenie modelu do wykonywania prostych instrukcji, co pozwoliłoby porównać klasyczne modelowanie języka z podejściem instruction-tuning.
 
