@@ -14,21 +14,29 @@ python inference.py --prompt "One day"
 python inference.py --prompt "One day, a big green dragon" --tokens 180 --temp 0.8 --top_k 10
 ```
 
-Model był w stanie generować krótkie historie w stylu zbliżonym do zbioru TinyStories. Wygenerowane teksty zwykle zawierają prostego bohatera, miejsce akcji, wydarzenie oraz podstawowe zakończenie. Przykładowo, dla generacji bez promptu model utworzył następujący fragment:
+Model był w stanie generować krótkie historie w stylu zbliżonym do zbioru TinyStories. Wygenerowane teksty zwykle zawierają prostego bohatera, miejsce akcji, wydarzenie oraz podstawowe zakończenie.
 
-> Once upon a time, there was a little girl named Lily. She loved to play with her dolls. One day, she asked her mom if she could play with her dolls, but her mom said no. Lily was sad. She went to her room and started to cry. (...)
-
-Tekst zachowuje prosty, dziecięcy styl narracji. Pojawia się bohaterka, problem oraz próba jego rozwiązania. Jednocześnie można zauważyć pewne niespójności logiczne, na przykład przejście od zabawy lalkami do poszukiwania zgubionego szczeniaka.
-
-Dla promptu:
+Przykład generacji bez promptu:
 
 ```text
-One day
+Prompt: ""
 ```
 
-model wygenerował historię rozpoczynającą się następująco:
+Wygenerowany tekst:
 
-> One day, a little girl named Lily went to the park. She saw a big tree with lots of trees and flowers. She wanted to climb it. But it was very high for her to reach. (...)
+> Once upon a time, there was a little girl named Lily. She loved to play with her dolls. One day, she asked her mom if she could play with her dolls, but her mom said no. Lily was sad. She went to her room and started to cry. Her mom noticed and asked, "Why can't you talk to her?"Lily replied, "I don't know, I can't find you. We can't find me."Her mom hugged her and said, "Don't worry, we'll find the lost puppy."They searched for the puppy in the garden, but they couldn't find him. Finally, they found the puppy hiding under a bush. Lily was so happy and said, "Thank you, Max. You're my best friend."From that day on, Lily and her mom were always friends and played together every day. And they always made sure to be kind to her and to always be kind to them
+
+Ten wynik pokazuje, że model potrafi samodzielnie rozpocząć historię i utrzymać styl przypominający prostą bajkę. Pojawia się bohaterka, problem oraz próba jego rozwiązania. Jednocześnie można zauważyć pewne niespójności logiczne, na przykład przejście od zabawy lalkami do poszukiwania zgubionego szczeniaka.
+
+Przykład generacji z krótkiego promptu:
+
+```text
+Prompt: "One day"
+```
+
+Wygenerowany tekst:
+
+> One day, a little girl named Lily went to the park. She saw a big tree with lots of trees and flowers. She wanted to climb it. But it was very high for her to reach. Lily asked her mommy what it was, and her mommy said it was too high for her to reach. Lily tried to climb the tree, but it was too high for her to reach. She felt sad and didn't know what to do. Then, a kind man came to the park. He saw Lily and asked her what was wrong. Lily told him about her climbing the tree. The man said he was climbing trees, but Lily didn't want to climb the tree. She asked her daddy for help, and he gave her a ladder. He climbed up the ladder and climbed it. The man was very happy and thanked Lily for help. He said thank you to Lily and they both went home. Lily learned that being kind and compassionate is important, and that was a good way to
 
 Ten przykład pokazuje, że model dobrze radzi sobie z promptami przypominającymi naturalny początek bajki. Kontynuacja zachowuje temat parku, drzewa i pomocy dziecku, chociaż w dalszej części pojawiają się powtórzenia, np. wielokrotne stwierdzenie, że drzewo było zbyt wysokie.
 
@@ -42,23 +50,29 @@ One day, a big green dragon
 
 oraz ustawiono `top_k = 10` i `tokens = 180`. Testowano trzy wartości temperatury: `0.3`, `0.8` oraz `1.2`.
 
-Dla temperatury `0.3` model wygenerował tekst bardziej przewidywalny i stabilny:
+#### Temperatura 0.3
 
-> One day, a big green dragon was walking in the forest. He was very brave and he wanted to explore the world. (...)
+Wygenerowany tekst:
 
-Wynik był dość spójny stylistycznie, ale szybko pojawiły się powtórzenia. Model wielokrotnie wracał do słów i motywów takich jak “forest”, “explore” oraz “excited”. Niska temperatura ogranicza losowość wyboru tokenów, przez co model częściej wybiera najbardziej prawdopodobne kontynuacje, ale może łatwiej wpadać w powtarzalne schematy.
+> One day, a big green dragon was walking in the forest. He was very brave and he wanted to explore the world. He asked his friends, "Can I go and explore the world?"His friends said, "Yes, you can go, but be careful. Don't be too close to the forest."The dragon was very brave and he was very excited. He ran around the forest and explored the forest. He saw many animals, but he was also very curious. He wanted to explore the world, so he decided to explore the forest. He found a big tree and started to climb up the tree. He was so excited he almost forgot the way he found. He was so excited he decided to explore the forest. He saw many trees and trees and trees. He was so happy he had found a new way to explore the world. He was so excited he couldn't wait to explore the forest. He
 
-Dla temperatury `0.8` model wygenerował krótszą, bardziej zwartą historię:
+Dla temperatury `0.3` tekst był przewidywalny i stylistycznie stabilny, ale szybko pojawiły się powtórzenia. Model wielokrotnie wracał do motywów takich jak “forest”, “explore” oraz “excited”. Niska temperatura ogranicza losowość wyboru tokenów, przez co model częściej wybiera najbardziej prawdopodobne kontynuacje, ale może łatwiej wpadać w powtarzalne schematy.
 
-> One day, a big green dragon was sitting on a tree. The dragon was very tall and tall. The dragon felt like a little bird. (...)
+#### Temperatura 0.8
 
-Tekst był mniej powtarzalny niż przy temperaturze `0.3`, ale nadal zawierał pewne problemy, np. powtórzenie “very tall and tall” oraz uproszczoną logikę historii. Ta wartość temperatury dawała rozsądny kompromis między spójnością a różnorodnością.
+Wygenerowany tekst:
 
-Dla temperatury `1.2` model wygenerował bardziej dynamiczny i kreatywny tekst:
+> One day, a big green dragon was sitting on a tree. The dragon was very tall and tall. The dragon felt like a little bird. He was looking for the bird. The bird was hungry. He wanted to eat a snack. So, he went to the tree and sat down on a branch. The bird was happy too. He ate some food and ate the food. After eating, he became hungry. He ate the food and fell asleep. The end.
 
-> One day, a big green dragon flew down and started moving his wings. He was flying very fast and the dragon was flying. (...)
+Dla temperatury `0.8` tekst był krótszy i bardziej zwarty. Nadal pojawiały się błędy oraz powtórzenia, np. “very tall and tall” oraz powtarzanie motywu jedzenia. Ta wartość temperatury dawała jednak rozsądny kompromis między spójnością a różnorodnością.
 
-W tym przypadku historia była bardziej zróżnicowana, ale pojawiło się więcej problemów logicznych. Model częściej powtarzał słowo “dragon” i tworzył mniej naturalne przejścia między zdarzeniami. Wyższa temperatura zwiększa różnorodność generacji, ale jednocześnie pogarsza kontrolę nad spójnością tekstu.
+#### Temperatura 1.2
+
+Wygenerowany tekst:
+
+> One day, a big green dragon flew down and started moving his wings. He was flying very fast and the dragon was flying. The dragon flew over the sky and landed on the ground. He felt like he was flying, so he decided to make a sound on his wings. As he continued flying, he saw a big hill. The dragon flew down and landed near it. The giant had a beautiful view that he had never felt before. The dragon saw the dragon again. The dragon flew to take a closer look. It s wings started to free. After the dragon flew back, the star was safe. The dragon thanked the dragon for showing him the way to the dragon. The dragon flew back to him and flew back home with the big red bird in his beak. From that day on, the dragon was always there to help people and they were happy and safe.
+
+Dla temperatury `1.2` historia była bardziej dynamiczna i różnorodna, ale pojawiło się więcej problemów logicznych. Model często powtarzał słowo “dragon” i tworzył mniej naturalne przejścia między wydarzeniami. Wyższa temperatura zwiększa kreatywność generacji, ale jednocześnie pogarsza kontrolę nad spójnością tekstu.
 
 ### 3.3. Eksperyment z parametrem top-k
 
@@ -68,59 +82,73 @@ W kolejnym eksperymencie sprawdzono wpływ parametru `top_k`, pozostawiając sta
 One day, a big green dragon
 ```
 
-Dla `top_k = 1` model wybierał zawsze najbardziej prawdopodobny token. Wygenerowany tekst był prosty i dość spójny:
+#### top_k = 1
 
-> One day, a big green dragon was walking in the forest. He was very scared and didn't know what to do. (...)
+Wygenerowany tekst:
 
-Taki sposób generacji daje stabilny wynik, ale ogranicza kreatywność. Historia była krótka, przewidywalna i zakończyła się dość szybko.
+> One day, a big green dragon was walking in the forest. He was very scared and didn't know what to do. Suddenly, he heard a voice. It was a little bird. The bird was scared and flew away. The dragon was very scared. He tried to fly away, but the bird was too fast. The dragon was very brave and flew away. The dragon was sad and scared. He wished he could fly away. The dragon flew away and never came back.
 
-Dla `top_k = 5` model uzyskał bardziej naturalny kompromis:
+Dla `top_k = 1` model wybierał zawsze najbardziej prawdopodobny token. Tekst był prosty i dość spójny, ale mało zróżnicowany. Historia zakończyła się szybko i miała przewidywalny przebieg.
 
-> One day, a big green dragon was walking in the forest. The dragon saw many things and wanted to see who could help. (...)
+#### top_k = 5
 
-Tekst zachował temat smoka i lasu, a jednocześnie był trochę bardziej zróżnicowany niż dla `top_k = 1`. Nadal pojawiały się jednak powtórzenia, na przykład wielokrotne użycie motywu pomocy.
+Wygenerowany tekst:
 
-Dla `top_k = 50` model miał większą swobodę wyboru tokenów:
+> One day, a big green dragon was walking in the forest. The dragon saw many things and wanted to see who could help. He asked his friends to help him get the things he needed. They all worked together and soon the dragon was ready to help. The dragon was very happy and said, "Thank you for helping me."The dragon was very happy and thanked the bird for helping him. They became great friends and played together every day. From that day on, the dragon always remembered to be careful when he needed help when he needed.
 
-> One day, a big green dragon was walking out the door. He was feeling curious and wanted to find out what was inside. He ca ut ious ly stepped inside the door (...)
+Dla `top_k = 5` tekst zachował temat smoka i lasu, a jednocześnie był nieco bardziej zróżnicowany niż dla `top_k = 1`. Nadal pojawiały się jednak powtórzenia, szczególnie motyw pomocy oraz powtarzające się zdania o zadowoleniu smoka.
 
-Wynik był bardziej różnorodny, ale pojawiły się wyraźne artefakty tokenizacji, np. “ca ut ious ly”. Tekst stał się mniej przewidywalny i mniej stabilny. Pokazuje to, że zbyt duże `top_k` może zwiększać kreatywność, ale jednocześnie podnosi ryzyko wyboru mniej trafnych tokenów.
+#### top_k = 50
+
+Wygenerowany tekst:
+
+> One day, a big green dragon was walking out the door. He was feeling curious and wanted to find out what was inside. He ca ut ious ly stepped inside the door, looking over at the sky and saw an adorable dragon. He quickly climbed up and carefully opened it. He opened the door and inside was a beautiful little bunny. The bunny was so excited and he quickly ran inside to tell his mum about the dragon. His mum smiled and said, "Let's go look for you, but we have to hurry now."She grabbed a stick and the dragon was very excited. She opened the door and the dragon was happy. She couldn't wait to explore it.
+
+Dla `top_k = 50` model miał większą swobodę wyboru tokenów. Wynik był bardziej różnorodny, ale pojawiły się wyraźne artefakty tokenizacji, np. “ca ut ious ly”. Tekst stał się mniej przewidywalny i mniej stabilny. Pokazuje to, że zbyt duże `top_k` może zwiększać kreatywność, ale jednocześnie podnosi ryzyko wyboru mniej trafnych tokenów.
 
 ### 3.4. Eksperyment z różnymi typami promptów
 
-Następnie sprawdzono, jak model reaguje na różne rodzaje promptów. Najlepsze wyniki uzyskano dla promptów przypominających naturalny początek historii, np.:
+Następnie sprawdzono, jak model reaguje na różne rodzaje promptów. Najlepsze wyniki uzyskano dla promptów przypominających naturalny początek historii.
+
+#### Naturalny prompt bajkowy
+
+Prompt:
 
 ```text
 Once upon a time, there was a little girl named Lily
 ```
 
-Model wygenerował kontynuację:
+Wygenerowany tekst:
 
-> Once upon a time, there was a little girl named Lily. She loved to play with her toys and her friends would always play together. One day, Lily's mom asked her to clean her room. (...)
+> Once upon a time, there was a little girl named Lily. She loved to play with her toys and her friends would always play together. One day, Lily's mom asked her to clean her room. Lily didn't want to clean her room, but she was having so much fun. Lily's mom explained that it's important to clean her room, but it's important to clean up the mess. Lily didn't want to clean her room, but she remembered her mom's words. She decided to clean up the messy room and make sure she was clean. Lily put on her favorite pa jam as and made a mess. She felt sad and started to clean her room. From that day on, Lily knew that she could help her room clean and tidy up the mess.
 
 W tym przypadku model dobrze kontynuował podany początek. Historia zachowała bohaterkę Lily oraz prosty dziecięcy kontekst. Pojawił się typowy dla TinyStories motyw nauki dobrego zachowania, czyli sprzątania pokoju.
 
-Gorsze wyniki pojawiły się dla promptów przypominających instrukcję, np.:
+#### Prompt przypominający instrukcję
+
+Prompt:
 
 ```text
 Write a story about flowers
 ```
 
-Wygenerowany tekst rozpoczął się od:
+Wygenerowany tekst:
 
-> W r ite a story about flowers and butterflies. She wanted to be a flower. (...)
+> W r ite a story about flowers and butterflies. She wanted to be a flower. She asked her mom, "Mom, can we help her?"Her mom said, "Yes, we can be a queen. But it is too far away."W r ite a s igh and said, "Don't worry, I'll help you get a flower. I will help you see it and see what happ ens."So she carefully lifted the flower and gave it to her mom. Her mom smiled and said, "That's a good idea, W r ince, I can help you."
 
 Model nie potraktował tego promptu jako polecenia, tylko jako zwykły początek tekstu do kontynuacji. Dodatkowo słowo “Write” zostało rozbite jako “W r ite”, co wskazuje na problem tokenizacji. Wynik pokazuje, że model nie jest modelem instrukcyjnym ani chatbotem. Nie został wytrenowany do wykonywania poleceń, tylko do kontynuowania tekstu.
 
-Podobny problem wystąpił dla promptu spoza domeny danych treningowych:
+#### Prompt spoza domeny danych treningowych
+
+Prompt:
 
 ```text
 The quantum computer calculated
 ```
 
-Model wygenerował:
+Wygenerowany tekst:
 
-> The qu ant um computer cal c ul ated in the living room. One day, Lily's little brother came over (...)
+> The qu ant um computer cal c ul ated in the living room. One day, Lily's little brother came over and saw that he was feeling sleepy. She asked her what was wrong, and her brother said it was okay. Lily told him that the tele vis ion was just for her. She said it was okay and they went to the c ul ture. They sat by the c ul ture, and the tele vis ion was still comfortable. Lily felt better and went to bed. She felt comfortable and ready to sleep. The next day, Lily woke up feeling much better. She was happy that she could help her brother feel better, and she felt better. She went to bed feeling much better. The end.
 
 W tym przykładzie słowa związane z technologią, takie jak “quantum”, “computer” i “calculated”, zostały rozbite na mniejsze fragmenty. Model szybko przeszedł z tematu komputera kwantowego do typowej dziecięcej historii o Lily i rodzinie. Oznacza to, że model najlepiej działa dla promptów podobnych do danych treningowych, a gorzej dla tematów technicznych lub rzadko występujących w zbiorze TinyStories.
 
@@ -130,16 +158,8 @@ Przeprowadzone eksperymenty pokazują, że model nauczył się ogólnego stylu p
 
 Jednocześnie model ma kilka widocznych ograniczeń. Najczęściej pojawiają się powtórzenia tych samych słów, motywów i konstrukcji zdaniowych. Widać to szczególnie przy niskiej temperaturze oraz przy dłuższej generacji. Model potrafi utrzymywać lokalną spójność tekstu, ale nie zawsze zachowuje globalny plan historii.
 
+Drugim istotnym ograniczeniem są artefakty tokenizacji. W przypadku mniej typowych słów lub promptów spoza domeny treningowej pojawiały się fragmenty takie jak “W r ite”, “qu ant um”, “cal c ul ated”, “tele vis ion” oraz “ca ut ious ly”. Oznacza to, że jakość działania modelu zależy nie tylko od architektury, ale również od jakości tokenizatora i podobieństwa promptu do danych treningowych.
+
 Eksperymenty z parametrami generacji pokazały, że temperatura i `top_k` mają duży wpływ na wynik. Niska temperatura daje bardziej przewidywalne, ale często bardziej powtarzalne teksty. Wyższa temperatura zwiększa różnorodność, ale pogarsza spójność. Małe `top_k` ogranicza kreatywność, natomiast duże `top_k` może prowadzić do bardziej zaskakujących, ale mniej stabilnych wyników.
 
-Istotnym ograniczeniem okazały się również artefakty tokenizacji. W przypadku mniej typowych słów lub promptów spoza domeny treningowej pojawiały się fragmenty takie jak “W r ite”, “qu ant um”, “cal c ul ated”, “tele vis ion”, “g mail” oraz “ca ut ious ly”. Oznacza to, że jakość działania modelu zależy nie tylko od architektury, ale również od jakości tokenizatora i podobieństwa promptu do danych treningowych.
-
-Dodatkowo zauważono, że gdy w promptach pojawiają się słowa rzadkie lub słabo reprezentowane w danych treningowych, model po rozbiciu ich na mniejsze fragmenty często próbuje dopasować te fragmenty do znanych schematów narracyjnych. Przykładowo prompt “gmail” został rozbity na “g mail”, po czym model zaczął generować historię związaną z listem, pocztą i słowem “mailer”. Podobnie słowa techniczne, takie jak “quantum” czy “calculated”, nie były traktowane jako pojęcia techniczne, tylko jako fragmenty tekstu, które model próbował wpasować w prostą historię dziecięcą.
-
-Można również zauważyć, że nietypowe lub rozbite słowa bywają przez model traktowane jak nazwy własne, imiona, obiekty albo elementy świata przedstawionego. Wynika to prawdopodobnie z faktu, że w danych treningowych często pojawiają się proste historie zaczynające się od bohatera, przedmiotu lub miejsca. Model nie rozumie więc znaczenia rzadkiego słowa w taki sposób jak człowiek, tylko dopasowuje jego fragmenty do wzorców językowych poznanych podczas treningu.
-
-Ta obserwacja pokazuje, że model najlepiej działa dla promptów podobnych do danych treningowych. Jeśli prompt zawiera słownictwo spoza tej domeny, szczególnie techniczne lub nietypowe, jakość generacji spada. Model może wtedy nie tylko rozbić słowa na fragmenty tokenów, ale też błędnie nadać im rolę w historii, np. potraktować je jak bohaterów, imiona lub obiekty występujące w bajce.
-
-Ogólnie wyniki można uznać za satysfakcjonujące jak na mały model językowy. System nie osiąga jakości dużych modeli konwersacyjnych, ale dobrze pokazuje podstawowe mechanizmy generowania tekstu: kontynuowanie promptu, wpływ parametrów próbkowania oraz ograniczenia wynikające z rozmiaru modelu, tokenizacji i danych treningowych.
-
-
+Ogólnie wyniki można uznać za satysfakcjonujące jak na mały model językowy. System nie osiąga jakości dużych modeli konwersacyjnych, ale dobrze pokazuje podstawowe mechanizmy generowania tekstu: kontynuowanie promptu, wpływ parametrów próbkowania oraz ograniczenia wynikające z rozmiaru modelu i danych treningowych.
