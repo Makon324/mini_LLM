@@ -1,12 +1,124 @@
+## 1. Wstęp
+Celem projektu było zaprojektowanie, zaimplementowanie od podstaw w środowisku PyTorch oraz wytrenowanie autorskiego, małego modelu językowego bazującego na architekturze Transformer. Model został stworzony z myślą o generowaniu krótkich opowiadań na podstawie zbioru danych roneneldan/TinyStories.
+
+Kluczowym założeniem projektu nie była wyłącznie optymalizacja metryk technicznych czy minimalizacja błędu podczas treningu, lecz stworzenie modelu zdolnego do generowania historii o rzeczywistej wartości dla docelowych odbiorców - dzieci. Jednocześnie zadbano o to, by model był na tyle mały, aby mógł generować opowiadania natychmiastowo, bezpośrednio na lokalnym urządzeniu użytkownika. W tym celu zaimplementowano również skrypt inferencyjny, który pozwala na dostosowanie parametrów generacji (np. temperatury czy top-k) oraz zdefiniowanie początku historii za pomocą promptu.
+
+Realizacja tych założeń wymagała ręcznego zaprogramowania wszystkich elementów sieci (takich jak mechanizm Causal Self-Attention, osadzenia pozycyjne czy warstwy Feed-Forward) oraz wytrenowania własnego tokenizatora BPE.
+
+## 2. Metoda
+
+### 2.1 Dane
+Wykorzystano zbiór danych TinyStories z paperu TinyStories (Eldan i Li, 2023, będący publicznie dostępnym korpusem syntetycznych historii wygenerowanych przez modele GPT-3.5 oraz GPT-4. Opowiadania zostały wygenerowane przy użyciu słownictwa typowego dla 3- lub 4-letniego dziecka w języku angielskim. Historie są bardzo krótkie, spójne gramatycznie i zawierają prostą narrację (często morał lub podstawowe interakcje między postaciami).
+
+### 2.2 State of the art
+
+#### Wprowadzenie do Małych Modeli Językowych (SLM)
+W ostatnich latach rozwój modeli językowych (LLM) zdominowany był przez skalowanie parametrów. Jednak rosnące koszty obliczeniowe i bariery wejścia zwróciły uwagę badaczy na Małe Modele Językowe (Small Language Models - SLM). Obecny stan wiedzy wskazuje, że jakość danych treningowych jest równie istotna, co rozmiar modelu.
+
+#### Oryginalna implementacja TinyStories
+Kluczowym punktem odniesienia w tej dziedzinie jest praca TinyStories (Eldan i Li, 2023), która udowodniła, że modele rzędu kilku milionów parametrów potrafią generować spójny tekst. Jednakże, oryginalne modele TinyStories opierają się na suboptymalnych decyzjach architektonicznych – korzystają ze standardowego tokenizera GPT-2 o rozmiarze słownika wynoszącym 50 257 tokenów. W przypadku najmniejszych modeli skutkuje to drastycznym ograniczeniem liczby parametrów, które można przeznaczyć na mechanizmy uwagi (attention) i warstwy sprzężenia w przód (feed-forward), odpowiedzialne za faktyczne wnioskowanie i poprawność gramatyczną.
+
+### 2.3 Technologia
+
+Do realizacji projektu wykorzystano ekosystem języka Python oraz dedykowane biblioteki uczenia maszynowego:
+
+* **PyTorch:** Główny framework obliczeniowy. Został użyty do budowy niestandardowej architektury modelu od podstaw, obsługi procesu propagacji wstecznej (backpropagation) oraz akceleracji sprzętowej na kartach graficznych (CUDA).
+* **Hugging Face Tokenizers:** Zastosowano do wygenerowania autorskiego tokenizatora opartego na kodowaniu BPE (Byte-Pair Encoding), zoptymalizowanego pod mały słownik.
+* **Hugging Face Datasets:** Biblioteka użyta do pobrania, strumieniowego przetwarzania korpusu tekstowego w paczkach (batching) oraz równoległej tokenizacji danych (multiprocessing).
+* **Jupyter Notebook:** Środowisko wykorzystane do iteracyjnego eksperymentowania z architekturą, strojenia hiperparametrów oraz uruchamiania pętli treningowych.
+
+### 2.4 Tokenizacja i Przygotowanie Danych
+
+Na podstawie pobranych danych wygenerowano własny słownik BPE o rozmiarze 4096 tokenów.
+
+Proces przygotowania tekstu obejmował:
+
+* **Pre-tokenizację:** Wykorzystano podział tekstu na słowa bazujący na białych znakach (Whitespace).
+* **Tokeny specjalne:** Wprowadzono tokeny systemowe: `<unk>` (nieznane znaki), `<bos>` i `<eos>` (odpowiednio początek i koniec historii) oraz `<pad>` (wypełnienie okna kontekstu).
+* **Post-processing:** Każda historia podczas tokenizacji była automatycznie otaczana tokenami początku i końca sekwencji.
+* **Grupowanie kontekstu:** Zamiast trenować na pojedynczych, różnej długości zdaniach, wszystkie tokeny połączono w jeden ciąg, a następnie podzielono na stałe, nienakładające się okna kontekstowe o maksymalnej długości 256 tokenów.
+
+### 2.5 Architektura Modelu
+
+Zaprojektowana sieć neuronowa składa z następujących elementów strukturalnych:
+
+* **Warstwa Osadzeń (Embeddings):** Wektoryzacja tokenów (Token Embeddings) oraz ich pozycji (Positional Embeddings). Rozmiar przestrzeni osadzeń wynosi 256 wymiarów.
+* **Współdzielenie Wag (Weight Tying):** Zastosowano kluczową optymalizację polegającą na połączeniu wag macierzy osadzeń tokenów z liniową warstwą wyjściową (LM Head). Pozwoliło to na znaczną redukcję ogólnej liczby parametrów modelu.
+* **Bloki Transformera (Transformer Blocks):** Model składa się z 4 warstw transformera. Każdy blok zawiera:
+* **Mechanizm Uwagi (Causal Self-Attention):** 8 głowic (Attention Heads), co daje 32 wymiary na głowicę. Zastosowano maskowanie przyczynowe (causal mask), uniemożliwiające modelowi "zaglądanie w przyszłość" poprzez wyzerowanie wag powyżej głównej przekątnej.
+* **Wielowarstwowy Perceptron (MLP):** Sieć typu feed-forward rozszerzająca wymiarowość 4-krotnie, po której następuje nieliniowa funkcja aktywacji **GELU**, powracająca następnie do bazowych 256 wymiarów.
+* **Normalizacja i Połączenia Resztkowe:** Użyto warstw `LayerNorm` (aplikowanych przed atencją oraz przed MLP) oraz połączeń typu skip-connection (residual), stabilizujących przepływ gradientu.
+
+
+
+Zastosowano standardowy wzór na  atencję:
+
+
+$$\text{Attention}(Q, K, V) = \text{softmax}\left(\frac{Q K^T}{\sqrt{d_k}} \cdot M\right)V$$
+
+
+*Gdzie M to maska przyczynowa (casual mask).*
+
+### 2.6 Proces Uczenia
+
+Model był trenowany na procesorze graficznym z wykorzystaniem funkcji straty Cross-Entropy Loss. Szczegóły procesu:
+
+* **Optymalizator:** AdamW z współczynnikiem uczenia (learning rate) równym 5e-4 oraz regularyzacją weight decay na poziomie 0.01.
+* **Regularyzacja:** Zastosowano warstwy Dropout o wartości 0.1 w mechanizmach uwagi oraz MLP, co miało na celu redukcję zjawiska przeuczenia (overfitting). Ponadto zastosowano obcinanie gradientów (gradient clipping) do maksymalnej wartości normy równej 1.0.
+* **Epoki i Batching:** Przetworzone bloki danych zasilały pętlę uczącą w pakietach wielkości 64 próbek (batch size). Trening odbył się w cyklu obejmującym łącznie 3 epoki na całym zbiorze danych.
+
+### 2.7 Inferencja i Generowanie Tekstu
+
+W celu ewaluacji oraz praktycznego wykorzystania modelu zaimplementowano skrypt do generowania tekstu autoregresyjnie, znak po znaku. Podczas inferencji wyłączono mechanizmy regularyzacyjne (Dropout = 0.0).
+
+Proces generowania kontrolowany jest przez dwie techniki próbkowania (sampling):
+
+* **Temperatura (Temperature):** Skalowanie wartości wyjściowych (logitów) przed nałożeniem funkcji softmax (domyślnie ustawione na 0.8), co pozwala na płynną regulację między deterministycznym, a bardziej zróżnicowanym językiem.
+* **Top-K Sampling:** Obcięcie rozkładu prawdopodobieństwa wyłącznie do *K* (domyślnie 10) najbardziej prawdopodobnych następnych tokenów.
+
+#### Post-processing tekstu i korekta interpunkcji
+
+Ze względu na specyfikę działania tokenizera BPE oraz zastosowanie pre-tokenizacji dzielącej tekst według białych znaków (Whitespace), proces dekodowania (zamiany wygenerowanych identyfikatorów z powrotem na tekst jawny) domyślnie łączy tokeny sekwencyjnie, wstawiając między nimi spacje. Skutkuje to powstawaniem błędów typograficznych w wynikowym ciągłym tekście, przejawiających się obecnością sztucznych, nadmiarowych odstępów bezpośrednio przed znakami interpunkcyjnymi (np. `"tekst ,"` zamiast `"tekst,"`).
+
+Aby wygenerowane opowiadania były w pełni naturalne w odbiorze i poprawne gramatycznie, zaimplementowano dedykowany etap post-processingu (czyszczenia tekstu). Po przetłumaczeniu wektora tokenów na postać tekstową, skrypt wykonuje operacje wyszukiwania i zamiany, które automatycznie usuwają niepożądane spacje wokół kluczowych znaków interpunkcyjnych, w tym:
+
+* przecinków (`" ,"` $\rightarrow$ `","`),
+* kropek (`" ."` $\rightarrow$ `"."`),
+* wykrzykników i pytajników (`" !"` $\rightarrow$ `"!"`, `" ?"` $\rightarrow$ `"?"`),
+* dwukropków i średników (`" :"` $\rightarrow$ `":"`, `" ;"` $\rightarrow$ `";"`),
+* cudzysłowów oraz apostrofów.
+
+Warto zaznaczyć, że przyjęta metoda tokenizacji i łączenia znaków skutkuje niekiedy pojawieniem się nadmiarowej spacji wewnątrz pojedynczego słowa (zwłaszcza w przypadku słów nietypowych, rozbitych na mniejsze sub-tokeny BPE). W obecnej implementacji nie wprowadzono dodatkowych mechanizmów korygujących ten specyficzny artefakt, jednakże jest to rzadkie i nie stanowi znaczącego problemu.
+
+Generowanie historii kończy się automatycznie po napotkaniu przez model specjalnego tokenu końca sekwencji `<eos>` lub po osiągnięciu odgórnie założonego limitu nowo utworzonych tokenów.
+
 ## 3. Wyniki
 
-### 3.1. Prezentacja działającego systemu
+### 3.1. Prezentacja działającego systemu i instrukcja obsługi skryptu (`inference.py`)
 
-W wyniku realizacji projektu uzyskaliśmy działający mały model językowy zdolny do generowania krótkich historii w języku angielskim. Model działa autoregresyjnie: otrzymuje początkowy prompt, przewiduje następny token, dołącza go do aktualnej sekwencji i powtarza ten proces aż do wygenerowania zadanej liczby tokenów lub zakończenia sekwencji.
+W wyniku realizacji projektu uzyskano działający mały model językowy. Model działa autoregresyjnie: otrzymuje początkowy prompt, przewiduje następny token, dołącza go do sekwencji i powtarza ten proces.
 
-System można uruchomić z poziomu wiersza poleceń za pomocą skryptu inferencyjnego. Skrypt wczytuje tokenizator oraz wytrenowane wagi modelu, koduje prompt, generuje nowe tokeny, dekoduje je z powrotem do tekstu, a następnie wykonuje podstawowe przetwarzanie końcowe, między innymi usuwanie zbędnych spacji przed znakami interpunkcyjnymi.
+System uruchamia się z poziomu wiersza poleceń za pomocą dedykowanego skryptu inferencyjnego. Skrypt automatycznie sprawdza dostępność akceleracji sprzętowej GPU (`cuda`) i w razie jej braku domyślnie przełącza obliczenia na procesor (`cpu`). W celach bezpieczeństwa wagi modelu ładowane są z flagą `weights_only=True`. Wywołanie metody `model.eval()` gwarantuje, że warstwy regularyzacyjne Dropout zostaną wyłączone, co stabilizuje proces deterministycznego i stochastycznego wnioskowania.
 
-Przykładowe użycie:
+Po zakończeniu generowania tekstu skrypt dokonuje automatycznego oczyszczania i formatowania końcowego poprzez usuwanie zbędnych spacji przed podstawowymi znakami interpunkcyjnymi (takimi jak przecinki, kropki, wykrzykniki, pytajniki, dwukropki, średniki oraz cudzysłowy).
+
+#### Wymagania wstępne
+
+Przed uruchomieniem skryptu należy upewnić się, że w tym samym katalogu roboczym znajdują się dwa kluczowe pliki źródłowe:
+
+1. `tinystories_model.pt` – plik zawierający stan i wyuczone wagi sieci neuronowej.
+2. `tinystories_bpe.json` – konfiguracja oraz słownik wytrenowanego tokenizatora BPE.
+
+#### Dostępne opcje i parametry wiersza poleceń (CLI)
+
+Skrypt wykorzystuje moduł `argparse` do elastycznego sterowania procesem generowania opowiadań za pomocą następujących flag parametrów:
+
+* `--prompt` (typ: `str`, domyślnie: `""`): Tekst początkowy lub fraza startowa, od której model rozpocznie układanie historii. W przypadku podania pustego ciągu znaków, model samodzielnie wylosuje pierwszy token.
+* `--tokens` (typ: `int`, domyślnie: `200`): Maksymalna liczba nowych tokenów, które model wygeneruje autoregresyjnie (proces może zakończyć się wcześniej, jeśli wygenerowany zostanie token końca sekwencji `<eos>`).
+* `--temp` (typ: `float`, domyślnie: `0.8`): Temperatura próbkowania (sampling temperature) skalująca wartości logits. Wyższa wartość zwiększa losowość i kreatywność tekstu, natomiast niższa wartość (bliższa 0) czyni go bardziej sztywnym i przewidywalnym.
+* `--top_k` (typ: `int`, domyślnie: `10`): Ograniczenie próbkowania do $K$ najbardziej prawdopodobnych tokenów. Odcina ono tokeny o niskim prawdopodobieństwie przed zastosowaniem funkcji Softmax, zapobiegając powstawaniu rażących błędów gramatycznych.
+
+#### Przykłady użycia w konsoli
 
 ```bash
 python inference.py
@@ -177,5 +289,15 @@ Eksperymenty pokazały również istotny wpływ parametrów generacji. Niska tem
 Ważnym ograniczeniem okazała się tokenizacja. Słowa rzadkie lub spoza domeny danych treningowych były często rozbijane na mniejsze fragmenty, np. “qu ant um”, “cal c ul ated”, “W r ite” czy “g mail”. Model próbował następnie dopasować takie fragmenty do znanych schematów z danych treningowych, czasami traktując je jak nazwy własne, imiona, obiekty lub elementy świata przedstawionego. Pokazuje to, że jakość tokenizatora oraz podobieństwo promptu do danych treningowych mają duży wpływ na końcowy wynik.
 
 Mimo widocznych ograniczeń projekt osiągnął swój główny cel. Udało się stworzyć kompletny pipeline generowania tekstu: od tokenizacji, przez wczytanie modelu, aż po autoregresyjną generację i dekodowanie wyniku. Model nie osiąga jakości dużych modeli konwersacyjnych, ale dobrze demonstruje podstawowe mechanizmy działania małych modeli językowych oraz pokazuje, jak parametry próbkowania, tokenizacja i dane treningowe wpływają na generowany tekst.
+
+## 5. Bibliografia
+### Artykuły naukowe
+* Eldan, R., & Li, Y. (2023). TinyStories: How Small Can Language Models Be and Still Speak Coherent English? arXiv preprint arXiv:2305.07759.
+### Zbiory danych
+* Zbiór danych TinyStories (Hugging Face): roneneldan/TinyStories
+### Biblioteki
+* PyTorch
+* Hugging Face Tokenizers
+* Hugging Face Datasets
 
 
