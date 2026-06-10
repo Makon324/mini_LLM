@@ -167,7 +167,8 @@ Ogólnie wyniki można uznać za satysfakcjonujące jak na mały model językowy
 
 ## 4. Wnioski
 
-Projekt pokazał, że nawet stosunkowo mały model językowy oparty na architekturze Transformer może generować proste i zrozumiałe historie, jeżeli zostanie wytrenowany na dobrze dobranym zbiorze danych. W naszym przypadku model nauczył się charakterystycznego stylu prostych historii dziecięcych: krótkich zdań, prostego słownictwa, typowych bohaterów oraz podstawowych schematów narracyjnych.
+Jednym z najważniejszych wniosków z projektu jest to, że do generowania prostych historii nie jest konieczny bardzo duży model językowy. Udało się pokazać, że model mający około 4 miliony parametrów jest w stanie nauczyć się stylu zbioru TinyStories i generować krótkie, w dużej mierze zrozumiałe historie. Oczywiście taki model ma wyraźne ograniczenia: częściej powtarza słowa, traci spójność przy dłuższej generacji i gorzej radzi sobie z promptami spoza domeny danych treningowych. Mimo to wyniki pokazują, że nawet niewielki Transformer może skutecznie uchwycić podstawowe schematy narracyjne, takie jak bohater, proste wydarzenie, problem i zakończenie historii.
+
 
 Najważniejszym wnioskiem jest to, że model działa najlepiej wtedy, gdy prompt jest podobny do danych treningowych. Prompty takie jak “One day” albo “Once upon a time” prowadziły do bardziej naturalnych i spójnych historii. Z kolei prompty techniczne, nietypowe lub przypominające instrukcje, np. “Write a story about flowers” albo “The quantum computer calculated”, powodowały spadek jakości generacji. Model nie został wytrenowany jako chatbot ani model instrukcyjny, dlatego nie interpretuje promptu jako polecenia, tylko jako początek tekstu do kontynuacji.
 
