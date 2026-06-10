@@ -163,3 +163,19 @@ Drugim istotnym ograniczeniem są artefakty tokenizacji. W przypadku mniej typow
 Eksperymenty z parametrami generacji pokazały, że temperatura i `top_k` mają duży wpływ na wynik. Niska temperatura daje bardziej przewidywalne, ale często bardziej powtarzalne teksty. Wyższa temperatura zwiększa różnorodność, ale pogarsza spójność. Małe `top_k` ogranicza kreatywność, natomiast duże `top_k` może prowadzić do bardziej zaskakujących, ale mniej stabilnych wyników.
 
 Ogólnie wyniki można uznać za satysfakcjonujące jak na mały model językowy. System nie osiąga jakości dużych modeli konwersacyjnych, ale dobrze pokazuje podstawowe mechanizmy generowania tekstu: kontynuowanie promptu, wpływ parametrów próbkowania oraz ograniczenia wynikające z rozmiaru modelu i danych treningowych.
+
+
+## 4. Wnioski
+
+Projekt pokazał, że nawet stosunkowo mały model językowy oparty na architekturze Transformer może generować proste i zrozumiałe historie, jeżeli zostanie wytrenowany na dobrze dobranym zbiorze danych. W naszym przypadku model nauczył się charakterystycznego stylu prostych historii dziecięcych: krótkich zdań, prostego słownictwa, typowych bohaterów oraz podstawowych schematów narracyjnych.
+
+Najważniejszym wnioskiem jest to, że model działa najlepiej wtedy, gdy prompt jest podobny do danych treningowych. Prompty takie jak “One day” albo “Once upon a time” prowadziły do bardziej naturalnych i spójnych historii. Z kolei prompty techniczne, nietypowe lub przypominające instrukcje, np. “Write a story about flowers” albo “The quantum computer calculated”, powodowały spadek jakości generacji. Model nie został wytrenowany jako chatbot ani model instrukcyjny, dlatego nie interpretuje promptu jako polecenia, tylko jako początek tekstu do kontynuacji.
+
+Eksperymenty pokazały również istotny wpływ parametrów generacji. Niska temperatura dawała bardziej przewidywalne teksty, ale zwiększała ryzyko powtórzeń. Wyższa temperatura pozwalała uzyskać bardziej różnorodne historie, jednak częściej prowadziła do błędów logicznych i mniej stabilnej narracji. Podobnie parametr `top_k` wpływał na balans między przewidywalnością a kreatywnością: małe wartości ograniczały różnorodność, natomiast duże wartości zwiększały ryzyko mniej trafnych kontynuacji.
+
+Ważnym ograniczeniem okazała się tokenizacja. Słowa rzadkie lub spoza domeny danych treningowych były często rozbijane na mniejsze fragmenty, np. “qu ant um”, “cal c ul ated”, “W r ite” czy “g mail”. Model próbował następnie dopasować takie fragmenty do znanych schematów z danych treningowych, czasami traktując je jak nazwy własne, imiona, obiekty lub elementy świata przedstawionego. Pokazuje to, że jakość tokenizatora oraz podobieństwo promptu do danych treningowych mają duży wpływ na końcowy wynik.
+
+Mimo widocznych ograniczeń projekt osiągnął swój główny cel. Udało się stworzyć kompletny pipeline generowania tekstu: od tokenizacji, przez wczytanie modelu, aż po autoregresyjną generację i dekodowanie wyniku. Model nie osiąga jakości dużych modeli konwersacyjnych, ale dobrze demonstruje podstawowe mechanizmy działania małych modeli językowych oraz pokazuje, jak parametry próbkowania, tokenizacja i dane treningowe wpływają na generowany tekst.
+
+W przyszłości projekt można rozwinąć poprzez ulepszenie tokenizatora, zwiększenie modelu, wydłużenie kontekstu oraz przeprowadzenie bardziej systematycznej ewaluacji jakości generowanych historii. Ciekawym kierunkiem byłoby również dostrojenie modelu do wykonywania prostych instrukcji, co pozwoliłoby porównać klasyczne modelowanie języka z podejściem instruction-tuning.
+
