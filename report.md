@@ -57,8 +57,6 @@ Zastosowano standardowy wzór na  atencję:
 $$\text{Attention}(Q, K, V) = \text{softmax}\left(\frac{Q K^T}{\sqrt{d_k}} \cdot M\right)V$$
 
 
-*Gdzie M to maska przyczynowa (casual mask).*
-
 ### 2.6 Proces Uczenia
 
 Model był trenowany na procesorze graficznym z wykorzystaniem funkcji straty Cross-Entropy Loss. Szczegóły procesu:
