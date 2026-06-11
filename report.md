@@ -13,16 +13,16 @@ Wykorzystano zbiór danych TinyStories z paperu TinyStories (Eldan i Li, 2023, b
 ### 2.2 State of the art
 
 #### Wprowadzenie do Małych Modeli Językowych (SLM)
-W ostatnich latach rozwój modeli językowych (LLM) zdominowany był przez skalowanie parametrów. Jednak rosnące koszty obliczeniowe i bariery wejścia zwróciły uwagę badaczy na Małe Modele Językowe (Small Language Models - SLM). Obecny stan wiedzy wskazuje, że jakość danych treningowych jest równie istotna, co rozmiar modelu.
+W ostatnich latach rozwój modeli językowych (LLM) zdominowany był przez skalowanie parametrów. Jednak rosnące koszty obliczeniowe i bariery wejścia sprawiają, sprawiły powstanie Małych Modeli Językowych (SLM). Charakteryzują się one kompaktowym rozmiarem, co umożliwia odpalanie ich bezpośrednio na lokalnych urządzeniach użytkowników. Zamiast dążyć do pełnej uniwersalności znanej z największych modeli, SLM-y są zazwyczaj silnie wyspecjalizowane w konkretnych zadaniach, łącząc wysoką efektywność z niższym zapotrzebowaniem na moc obliczeniową.
 
 #### Oryginalna implementacja TinyStories
-Kluczowym punktem odniesienia w tej dziedzinie jest praca TinyStories (Eldan i Li, 2023), która udowodniła, że modele rzędu kilku milionów parametrów potrafią generować spójny tekst. Jednakże, oryginalne modele TinyStories opierają się na suboptymalnych decyzjach architektonicznych – korzystają ze standardowego tokenizera GPT-2 o rozmiarze słownika wynoszącym 50 257 tokenów. W przypadku najmniejszych modeli skutkuje to drastycznym ograniczeniem liczby parametrów, które można przeznaczyć na mechanizmy uwagi (attention) i warstwy sprzężenia w przód (feed-forward), odpowiedzialne za faktyczne wnioskowanie i poprawność gramatyczną.
+Kluczowym punktem odniesienia w tej dziedzinie jest praca TinyStories (Eldan i Li, 2023), która udowodniła, że modele rzędu kilku milionów parametrów potrafią generować spójny tekst. Jednakże, oryginalne modele TinyStories opierają się na suboptymalnych decyzjach architektonicznych - korzystają ze standardowego tokenizera GPT-2 o rozmiarze słownika wynoszącym 50 257 tokenów. W przypadku najmniejszych modeli skutkuje to drastycznym ograniczeniem liczby parametrów, które można przeznaczyć na mechanizmy uwagi (attention) i warstwy sprzężenia w przód (feed-forward), odpowiedzialne za faktyczne wnioskowanie i poprawność gramatyczną.
 
 ### 2.3 Technologia
 
 Do realizacji projektu wykorzystano ekosystem języka Python oraz dedykowane biblioteki uczenia maszynowego:
 
-* **PyTorch:** Główny framework obliczeniowy. Został użyty do budowy niestandardowej architektury modelu od podstaw, obsługi procesu propagacji wstecznej (backpropagation) oraz akceleracji sprzętowej na kartach graficznych (CUDA).
+* **PyTorch:** Główny framework obliczeniowy. Został użyty do budowy niestandardowej architektury modelu od podstaw, obsługi procesu propagacji wstecznej (backpropagation) oraz akceleracji sprzętowej na kartach graficznych (CUDA). np.
 * **Hugging Face Tokenizers:** Zastosowano do wygenerowania autorskiego tokenizatora opartego na kodowaniu BPE (Byte-Pair Encoding), zoptymalizowanego pod mały słownik.
 * **Hugging Face Datasets:** Biblioteka użyta do pobrania, strumieniowego przetwarzania korpusu tekstowego w paczkach (batching) oraz równoległej tokenizacji danych (multiprocessing).
 * **Jupyter Notebook:** Środowisko wykorzystane do iteracyjnego eksperymentowania z architekturą, strojenia hiperparametrów oraz uruchamiania pętli treningowych.
