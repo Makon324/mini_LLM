@@ -33,7 +33,7 @@ Na podstawie pobranych danych wygenerowano własny słownik BPE o rozmiarze 4096
 
 Proces przygotowania tekstu obejmował:
 
-* **Pre-tokenizację:** Wykorzystano podział tekstu na słowa bazujący na białych znakach (Whitespace).
+* **Przed tokenizacją:** Wykorzystano podział tekstu na słowa bazujący na białych znakach (Whitespace).
 * **Tokeny specjalne:** Wprowadzono tokeny systemowe: `<unk>` (nieznane znaki), `<bos>` i `<eos>` (odpowiednio początek i koniec historii) oraz `<pad>` (wypełnienie okna kontekstu).
 * **Post-processing:** Każda historia podczas tokenizacji była automatycznie otaczana tokenami początku i końca sekwencji.
 * **Grupowanie kontekstu:** Zamiast trenować na pojedynczych, różnej długości zdaniach, wszystkie tokeny połączono w jeden ciąg, a następnie podzielono na stałe, nienakładające się okna kontekstowe o maksymalnej długości 256 tokenów.
