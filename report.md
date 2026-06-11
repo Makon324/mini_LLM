@@ -111,7 +111,7 @@ Przed uruchomieniem skryptu należy upewnić się, że w tym samym katalogu robo
 
 Skrypt wykorzystuje moduł `argparse` do elastycznego sterowania procesem generowania opowiadań za pomocą następujących flag parametrów:
 
-* `--prompt` (typ: `str`, domyślnie: `""`): Tekst początkowy lub fraza startowa, od której model rozpocznie układanie historii. W przypadku podania pustego ciągu znaków, model samodzielnie wylosuje pierwszy token.
+* `--prompt` (typ: `str`, domyślnie: `""`): Tekst początkowy od którego model rozpocznie generowanie kolejnych tokenów.
 * `--tokens` (typ: `int`, domyślnie: `200`): Maksymalna liczba nowych tokenów, które model wygeneruje autoregresyjnie (proces może zakończyć się wcześniej, jeśli wygenerowany zostanie token końca sekwencji `<eos>`).
 * `--temp` (typ: `float`, domyślnie: `0.8`): Temperatura próbkowania (sampling temperature) skalująca wartości logits. Wyższa wartość zwiększa losowość i kreatywność tekstu, natomiast niższa wartość (bliższa 0) czyni go bardziej sztywnym i przewidywalnym.
 * `--top_k` (typ: `int`, domyślnie: `10`): Ograniczenie próbkowania do $K$ najbardziej prawdopodobnych tokenów. Odcina ono tokeny o niskim prawdopodobieństwie przed zastosowaniem funkcji Softmax, zapobiegając powstawaniu rażących błędów gramatycznych.
