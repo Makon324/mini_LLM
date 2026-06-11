@@ -43,7 +43,7 @@ Proces przygotowania tekstu obejmował:
 Zaprojektowana sieć neuronowa składa z następujących elementów strukturalnych:
 
 * **Warstwa Osadzeń (Embeddings):** Wektoryzacja tokenów (Token Embeddings) oraz ich pozycji (Positional Embeddings). Rozmiar przestrzeni osadzeń wynosi 256 wymiarów.
-* **Współdzielenie Wag (Weight Tying):** Zastosowano kluczową optymalizację polegającą na połączeniu wag macierzy osadzeń tokenów z liniową warstwą wyjściową (LM Head). Pozwoliło to na znaczną redukcję ogólnej liczby parametrów modelu.
+* **Współdzielenie Wag (Weight Tying):** Zastosowano optymalizację polegającą na połączeniu wag macierzy osadzeń tokenów z liniową warstwą wyjściową (LM Head).
 * **Bloki Transformera (Transformer Blocks):** Model składa się z 4 warstw transformera. Każdy blok zawiera:
 * **Mechanizm Uwagi (Causal Self-Attention):** 8 głowic (Attention Heads), co daje 32 wymiary na głowicę. Zastosowano maskowanie przyczynowe (causal mask), uniemożliwiające modelowi "zaglądanie w przyszłość" poprzez wyzerowanie wag powyżej głównej przekątnej.
 * **Wielowarstwowy Perceptron (MLP):** Sieć typu feed-forward rozszerzająca wymiarowość 4-krotnie, po której następuje nieliniowa funkcja aktywacji **GELU**, powracająca następnie do bazowych 256 wymiarów.
