@@ -22,7 +22,7 @@ Kluczowym punktem odniesienia w tej dziedzinie jest praca TinyStories (Eldan i L
 
 Do realizacji projektu wykorzystano ekosystem języka Python oraz dedykowane biblioteki uczenia maszynowego:
 
-* **PyTorch:** Główny framework obliczeniowy. Został użyty do budowy niestandardowej architektury modelu od podstaw, obsługi procesu propagacji wstecznej (backpropagation) oraz akceleracji sprzętowej na kartach graficznych (CUDA). np.
+* **PyTorch:** Główny framework obliczeniowy. Został użyty do budowy niestandardowej architektury modelu od podstaw, obsługi procesu propagacji wstecznej (backpropagation) oraz akceleracji sprzętowej na kartach graficznych (CUDA).
 * **Hugging Face Tokenizers:** Zastosowano do wygenerowania autorskiego tokenizatora opartego na kodowaniu BPE (Byte-Pair Encoding), zoptymalizowanego pod mały słownik.
 * **Hugging Face Datasets:** Biblioteka użyta do pobrania, strumieniowego przetwarzania korpusu tekstowego w paczkach (batching) oraz równoległej tokenizacji danych (multiprocessing).
 * **Jupyter Notebook:** Środowisko wykorzystane do iteracyjnego eksperymentowania z architekturą, strojenia hiperparametrów oraz uruchamiania pętli treningowych.
@@ -54,7 +54,7 @@ Zaprojektowana sieć neuronowa składa z następujących elementów strukturalny
 Zastosowano standardowy wzór na  atencję:
 
 
-$$\text{Attention}(Q, K, V) = \text{softmax}\left(\frac{Q K^T}{\sqrt{d_k}} \cdot M\right)V$$
+$\text{Attention}(Q, K, V) = \text{softmax}\left(\frac{Q K^T}{\sqrt{d_k}} \cdot M\right)V$
 
 
 ### 2.6 Proces Uczenia
@@ -96,7 +96,7 @@ Generowanie historii kończy się automatycznie po napotkaniu przez model specja
 
 W wyniku realizacji projektu uzyskano działający mały model językowy. Model działa autoregresyjnie: otrzymuje początkowy prompt, przewiduje następny token, dołącza go do sekwencji i powtarza ten proces.
 
-System uruchamia się z poziomu wiersza poleceń za pomocą dedykowanego skryptu inferencyjnego. Skrypt automatycznie sprawdza dostępność akceleracji sprzętowej GPU (`cuda`) i w razie jej braku domyślnie przełącza obliczenia na procesor (`cpu`). W celach bezpieczeństwa wagi modelu ładowane są z flagą `weights_only=True`. Wywołanie metody `model.eval()` gwarantuje, że warstwy regularyzacyjne Dropout zostaną wyłączone, co stabilizuje proces deterministycznego i stochastycznego wnioskowania.
+System uruchamia się z poziomu wiersza poleceń za pomocą dedykowanego skryptu inferencyjnego. Skrypt automatycznie sprawdza dostępność akceleracji sprzętowej GPU (`cuda`) i w razie jej braku domyślnie przełącza obliczenia na procesor (`cpu`). W celach bezpieczeństwa wagi modelu ładowane są z flagą `weights_only=True`.
 
 Po zakończeniu generowania tekstu skrypt dokonuje automatycznego oczyszczania i formatowania końcowego poprzez usuwanie zbędnych spacji przed podstawowymi znakami interpunkcyjnymi (takimi jak przecinki, kropki, wykrzykniki, pytajniki, dwukropki, średniki oraz cudzysłowy).
 
